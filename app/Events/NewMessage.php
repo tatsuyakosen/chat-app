@@ -4,26 +4,29 @@ namespace App\Events;
 
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\InteractsWithSockets;
-// use Illuminate\Broadcasting\PresenceChannel;
-// use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Group;
+use App\Models\GroupMessage;
 
 class NewMessage implements ShouldBroadcast
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
     
     public $message;
-    
+    public $group;
+
     /**
      * Create a new event instance.
      *
      * @param string $message
+     * @param Group $group
      */
-    public function __construct($message)
+    public function __construct($message, Group $group)
     {
         $this->message = $message;
+        $this->group = $group;
     }
 
     /**
@@ -33,7 +36,8 @@ class NewMessage implements ShouldBroadcast
      */
     public function broadcastOn(): Channel
     {
-        return new Channel('chat');
+        // グループ固有のチャンネルに変更
+        return new Channel('group.' . $this->group->id);
     }
 
     /**

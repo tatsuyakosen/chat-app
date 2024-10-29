@@ -19,6 +19,8 @@ function Chat() {
 
     const sendMessage = () => {
         // メッセージをサーバーに送信
+        if (input.trim() === '') return;
+        
         axios.post('/send-message', { message: input })
             .then(response => {
                 setInput(''); // 入力フィールドをクリア
@@ -29,20 +31,25 @@ function Chat() {
     };
 
     return (
-        <div>
-            <h2>Chatコンポーネントが表示されています</h2>
-            <ul>
-                {messages.map((message, index) => (
-                    <li key={index}>{message}</li>
-                ))}
-            </ul>
-            <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="メッセージを入力"
-            />
-            <button onClick={sendMessage}>送信</button>
+        <div className="chat-container">
+            <h2 className="chat-title">チャットルーム</h2>
+            <div className="chat-window">
+                <ul className="chat-messages">
+                    {messages.map((message, index) => (
+                        <li key={index} className="chat-message">{message}</li>
+                    ))}
+                </ul>
+            </div>
+            <div className="chat-input-container">
+                <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="メッセージを入力"
+                    className="chat-input"
+                />
+                <button onClick={sendMessage} className="chat-send-button">送信</button>
+            </div>
         </div>
     );
 }
