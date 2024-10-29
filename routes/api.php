@@ -26,3 +26,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/groups', [GroupController::class, 'createGroup']); // 追加済みの `POST` ルート
     Route::get('/users', [GroupController::class, 'getUsers']); // ユーザー一覧取得のルート
 });
+
+Route::post('/groups/{group}/invite', [GroupController::class, 'inviteUser']);
+Route::get('/invitations', [GroupController::class, 'getInvitations']);
+Route::post('/groups/{group}/accept', [GroupController::class, 'acceptInvitation']);
+Route::post('/groups/{group}/decline', [GroupController::class, 'declineInvitation']);

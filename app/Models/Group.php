@@ -11,13 +11,15 @@ class Group extends Model
 
     protected $fillable = ['name'];
 
-    public function users()
-    {
-        return $this->belongsToMany(User::class);
-    }
+   
 
     public function messages()
     {
         return $this->hasMany(GroupMessage::class);
+    }
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'group_user', 'group_id', 'user_id');
     }
 }

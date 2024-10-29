@@ -1,15 +1,21 @@
-// resources/js/Pages/Dashboard.jsx
-
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head } from '@inertiajs/react';
 import { useNavigate } from 'react-router-dom';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 export default function Dashboard({ auth }) {
     const navigate = useNavigate();
     const [showModal, setShowModal] = useState(false);
     const [groupName, setGroupName] = useState('');
+    const [invitations, setInvitations] = useState([]); // 招待リスト
+
+    useEffect(() => {
+        // 招待されているグループの一覧を取得
+        axios.get('/api/invitations').then((response) => {
+            setInvitations(response.data);
+        });
+    }, []);
 
     const goToChat = () => {
         navigate('/chat');
@@ -39,6 +45,24 @@ export default function Dashboard({ auth }) {
             .catch(error => {
                 console.error('グループ作成エラー:', error);
             });
+    };
+
+    const acceptInvitation = (groupId) => {
+        axios.post(`/api/groups/${groupId}/accept`).then(() => {
+            setInvitations(invitations.filter(inv => inv.id !== groupId));
+            alert('グループに参加しました');
+        }).catch(error => {
+            console.error('参加エラー:', error);
+        });
+    };
+
+    const declineInvitation = (groupId) => {
+        axios.post(`/api/groups/${groupId}/decline`).then(() => {
+            setInvitations(invitations.filter(inv => inv.id !== groupId));
+            alert('招待を辞退しました');
+        }).catch(error => {
+            console.error('辞退エラー:', error);
+        });
     };
 
     return (
@@ -71,6 +95,34 @@ export default function Dashboard({ auth }) {
                             >
                                 グループ作成
                             </button>
+
+                            {/* 招待リスト */}
+                            {invitations.length > 0 && (
+                                <div className="mt-6">
+                                    <h3 className="font-semibold mb-4">招待されたグループ</h3>
+                                    <ul>
+                                        {invitations.map((inv) => (
+                                            <li key={inv.id} className="mb-2 flex justify-between items-center">
+                                                <span>{inv.name}</span>
+                                                <div>
+                                                    <button
+                                                        onClick={() => acceptInvitation(inv.id)}
+                                                        className="mr-2 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                                                    >
+                                                        参加
+                                                    </button>
+                                                    <button
+                                                        onClick={() => declineInvitation(inv.id)}
+                                                        className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                                    >
+                                                        辞退
+                                                    </button>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

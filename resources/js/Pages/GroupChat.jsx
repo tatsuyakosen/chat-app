@@ -6,6 +6,7 @@ function GroupChat() {
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
+    const [inviteEmail, setInviteEmail] = useState('');
 
     useEffect(() => {
         axios.get('/api/groups').then((response) => {
@@ -48,6 +49,22 @@ function GroupChat() {
         .catch((error) => {
             console.error('メッセージ送信エラー:', error);
         });
+        setInput('');
+    };
+
+    const inviteUser = () => {
+        if (inviteEmail.trim() === '' || !selectedGroup) return;
+
+        axios.post(`/api/groups/${selectedGroup.id}/invite`, {
+            email: inviteEmail
+        })
+        .then(() => {
+            alert(`ユーザー ${inviteEmail} が招待されました`);
+            setInviteEmail('');
+        })
+        .catch((error) => {
+            console.error('ユーザー招待エラー:', error);
+        });
     };
 
     return (
@@ -83,6 +100,20 @@ function GroupChat() {
                                     ))}
                                 </ul>
                             </div>
+                            <div className="flex space-x-2 mb-4">
+                                <input 
+                                    value={inviteEmail}
+                                    onChange={(e) => setInviteEmail(e.target.value)}
+                                    placeholder="ユーザーのメールを入力"
+                                    className="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-400"
+                                />
+                                <button 
+                                    onClick={inviteUser} 
+                                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex-shrink-0"
+                                >
+                                    招待
+                                </button>
+                            </div>
                             <div className="flex space-x-2">
                                 <input 
                                     value={input}
@@ -92,7 +123,7 @@ function GroupChat() {
                                 />
                                 <button 
                                     onClick={sendMessage} 
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                                    className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex-shrink-0"
                                 >
                                     送信
                                 </button>

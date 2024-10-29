@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Events\NewMessage;
+use Illuminate\Support\Facades\Auth;
 
 class GroupController extends Controller
 {
@@ -94,4 +95,46 @@ class GroupController extends Controller
         $users = User::all();
         return response()->json($users);
     }
+
+    public function inviteUser(Request $request, Group $group)
+    {
+        $request->validate([
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        $user = User::where('email', $request->email)->first();
+
+        if ($group->users()->where('user_id', $user->id)->exists()) {
+            return response()->json(['message' => 'ユーザーはすでにグループに参加しています'], 400);
+        }
+
+        $group->users()->attach($user->id);
+
+        return response()->json(['message' => 'ユーザーがグループに招待されました'], 200);
+    }
+
+    public function getInvitations()
+    {
+        $user = Auth::user();
+        $invitations = $user->groups()->wherePivot('accepted', false)->get();
+        
+        return response()->json($invitations);
+    }
+
+    public function acceptInvitation($groupId)
+{
+    $user = auth()->user();
+    $user->groups()->updateExistingPivot($groupId, ['accepted' => true]);
+
+    return response()->json(['message' => 'Invitation accepted.']);
+}
+
+public function declineInvitation($groupId)
+{
+    $user = auth()->user();
+    $user->groups()->detach($groupId);
+
+    return response()->json(['message' => 'Invitation declined.']);
+}
+
 }
