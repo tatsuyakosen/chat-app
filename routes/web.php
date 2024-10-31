@@ -5,6 +5,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\GroupController;
 
 
 /*
@@ -44,3 +45,6 @@ Route::post('/send-message', [MessageController::class, 'sendMessage']);
 Route::get('/group-chat', function () {
     return Inertia::render('GroupChat');
 });
+
+
+Route::middleware('auth')->get('/api/user-groups', [GroupController::class, 'getUserGroups']);

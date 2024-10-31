@@ -89,12 +89,18 @@ class GroupController extends Controller
         return response()->json(['status' => 'Message sent!', 'message' => $message]);
     }
 
-    // 新たに追加: 全ユーザー取得
-    public function getUsers()
-    {
-        $users = User::all();
-        return response()->json($users);
-    }
+    
+    public function getUserGroups()
+   {
+    $user = Auth::user();
+    $groups = Group::where('created_by', $user->id)
+        ->orWhereHas('users', function($query) use ($user) {
+            $query->where('user_id', $user->id);
+        })
+        ->get();
+    return response()->json($groups);
+}
+
 
     public function inviteUser(Request $request, Group $group)
     {

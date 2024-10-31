@@ -9,11 +9,15 @@ function GroupChat() {
     const [inviteEmail, setInviteEmail] = useState('');
 
     useEffect(() => {
-        axios.get('/api/groups').then((response) => {
-            setGroups(response.data);
-        });
+        axios.get('/api/user-groups')
+            .then((response) => {
+                setGroups(response.data);
+            })
+            .catch((error) => {
+                console.error("グループの取得エラー:", error);
+            });
     }, []);
-
+    
     useEffect(() => {
         if (selectedGroup) {
             const channel = window.Echo.channel(`group.${selectedGroup.id}`);
@@ -68,13 +72,13 @@ function GroupChat() {
     };
 
     return (
-        <div className="container mx-auto p-4 h-screen flex flex-col">
-            <div className="bg-blue-500 text-white py-4">
-                <h2 className="text-2xl font-bold text-center">グループチャット</h2>
+        <div className="w-full h-screen flex flex-col bg-gray-900"> {/* 幅と背景を画面全体に設定 */}
+            <div className="bg-gray-700 text-gray-200 py-4 w-full">
+                <h2 className="text-2xl font-bold text-center">motive room</h2>
             </div>
             <div className="flex flex-grow">
-                <div className="w-1/4 bg-gray-100 p-4 rounded-lg shadow h-full overflow-y-auto">
-                    <h3 className="text-lg font-semibold mb-4">グループリスト</h3>
+                <div className="w-1/6 bg-gray-100 p-4 h-full overflow-y-auto">
+                    <h3 className="text-lg font-semibold mb-4">グループ</h3>
                     <ul className="space-y-2">
                         {groups.map((group) => (
                             <li 
@@ -87,11 +91,11 @@ function GroupChat() {
                         ))}
                     </ul>
                 </div>
-                <div className="w-3/4 p-4 h-full flex flex-col">
+                <div className="w-5/6 p-4 h-full flex flex-col">
                     {selectedGroup ? (
                         <div className="bg-white p-6 rounded-lg shadow-md flex flex-col flex-grow">
-                            <h3 className="text-xl font-semibold mb-4">{selectedGroup.name} チャット</h3>
-                            <div className="flex-grow overflow-y-auto bg-gray-50 p-4 rounded-lg mb-4 shadow-inner h-80">
+                            <h3 className="text-xl font-semibold mb-4">{selectedGroup.name} </h3>
+                            <div className="flex-grow overflow-y-auto bg-gray-50 p-4 rounded-lg mb-4 shadow-inner">
                                 <ul className="space-y-1">
                                     {messages.map((msg, index) => (
                                         <li key={index} className="p-2 bg-blue-50 rounded-lg border border-gray-200">
@@ -109,7 +113,7 @@ function GroupChat() {
                                 />
                                 <button 
                                     onClick={inviteUser} 
-                                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex-shrink-0"
+                                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
                                 >
                                     招待
                                 </button>
@@ -123,7 +127,7 @@ function GroupChat() {
                                 />
                                 <button 
                                     onClick={sendMessage} 
-                                    className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex-shrink-0"
+                                    className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
                                 >
                                     送信
                                 </button>
