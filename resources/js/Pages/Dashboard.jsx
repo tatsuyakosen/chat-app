@@ -9,12 +9,25 @@ export default function Dashboard({ auth }) {
     const [showModal, setShowModal] = useState(false);
     const [groupName, setGroupName] = useState('');
     const [invitations, setInvitations] = useState([]);
+    const [groups, setGroups] = useState([]);
 
     useEffect(() => {
         axios.get('/api/invitations').then((response) => {
+            console.log("Invitations:", response.data);
             setInvitations(response.data);
         });
+        fetchGroups();
     }, []);
+
+    const fetchGroups = () => {
+        axios.get('/api/user-groups')
+            .then((response) => {
+                setGroups(response.data);
+            })
+            .catch((error) => {
+                console.error("グループの取得エラー:", error);
+            });
+    };
 
     const goToGroupChat = () => {
         navigate('/group-chat');
@@ -36,6 +49,7 @@ export default function Dashboard({ auth }) {
             .then(response => {
                 alert('グループが作成されました！');
                 closeModal();
+                fetchGroups();
             })
             .catch(error => {
                 console.error('グループ作成エラー:', error);
@@ -46,6 +60,7 @@ export default function Dashboard({ auth }) {
         axios.post(`/api/groups/${groupId}/accept`).then(() => {
             setInvitations(invitations.filter(inv => inv.id !== groupId));
             alert('グループに参加しました');
+            fetchGroups();
         }).catch(error => {
             console.error('参加エラー:', error);
         });

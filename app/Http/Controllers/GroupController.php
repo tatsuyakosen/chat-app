@@ -13,23 +13,25 @@ class GroupController extends Controller
 {
     public function createGroup(Request $request)
     {
-        // バリデーション
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'user_ids' => 'array', // ユーザーIDの配列
-            'user_ids.*' => 'exists:users,id', // 各IDがusersテーブルに存在するかを確認
+            'user_ids' => 'array',
+            'user_ids.*' => 'exists:users,id',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // グループ作成
-        $group = Group::create(['name' => $request->name]);
+        $group = Group::create([
+            'name' => $request->name,
+            'created_by' => auth()->id(),
+        ]);
 
-        // ユーザーをグループに追加
+        $group->users()->attach(auth()->id(), ['accepted' => true]);
+
         if (!empty($request->user_ids)) {
-            $group->users()->attach($request->user_ids);
+            $group->users()->attach($request->user_ids, ['accepted' => false]);
         }
 
         return response()->json(['status' => 'Group created!', 'group' => $group]);
@@ -43,7 +45,6 @@ class GroupController extends Controller
 
     public function getGroupMessages($groupId)
     {
-        // グループが存在するか確認
         $group = Group::find($groupId);
 
         if (!$group) {
@@ -51,17 +52,13 @@ class GroupController extends Controller
         }
 
         try {
-            // グループのメッセージを取得
             $messages = $group->messages()->with('user')->get();
-
             return response()->json($messages);
         } catch (\Exception $e) {
-            // エラーが発生した場合、詳細なエラーログを記録し、500エラーを返す
             \Log::error('Failed to fetch group messages:', [
                 'error' => $e->getMessage(),
                 'groupId' => $groupId
             ]);
-
             return response()->json(['error' => 'Failed to fetch group messages'], 500);
         }
     }
@@ -80,27 +77,25 @@ class GroupController extends Controller
         $group = Group::find($request->group_id);
         $message = $group->messages()->create([
             'message' => $request->message,
-            'user_id' => auth()->id(), // 現在ログインしているユーザーID
+            'user_id' => auth()->id(),
         ]);
 
-        // イベントをディスパッチ
         event(new NewMessage($message->message, $group));
 
         return response()->json(['status' => 'Message sent!', 'message' => $message]);
     }
 
-    
     public function getUserGroups()
-   {
-    $user = Auth::user();
-    $groups = Group::where('created_by', $user->id)
-        ->orWhereHas('users', function($query) use ($user) {
-            $query->where('user_id', $user->id);
-        })
-        ->get();
-    return response()->json($groups);
-}
+    {
+        $user = Auth::user();
+        $groups = Group::where('created_by', $user->id)
+            ->orWhereHas('users', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->get();
 
+        return response()->json($groups);
+    }
 
     public function inviteUser(Request $request, Group $group)
     {
@@ -114,7 +109,7 @@ class GroupController extends Controller
             return response()->json(['message' => 'ユーザーはすでにグループに参加しています'], 400);
         }
 
-        $group->users()->attach($user->id);
+        $group->users()->attach($user->id, ['accepted' => false]);
 
         return response()->json(['message' => 'ユーザーがグループに招待されました'], 200);
     }
@@ -122,25 +117,72 @@ class GroupController extends Controller
     public function getInvitations()
     {
         $user = Auth::user();
-        $invitations = $user->groups()->wherePivot('accepted', false)->get();
-        
+        $invitations = $user->groups()
+            ->wherePivot('accepted', false)
+            ->where('created_by', '!=', $user->id)
+            ->get();
+
         return response()->json($invitations);
     }
 
     public function acceptInvitation($groupId)
-{
-    $user = auth()->user();
-    $user->groups()->updateExistingPivot($groupId, ['accepted' => true]);
+    {
+        $user = auth()->user();
+        $user->groups()->updateExistingPivot($groupId, ['accepted' => true]);
 
-    return response()->json(['message' => 'Invitation accepted.']);
-}
+        return response()->json(['message' => 'Invitation accepted.']);
+    }
 
-public function declineInvitation($groupId)
-{
-    $user = auth()->user();
-    $user->groups()->detach($groupId);
+    public function declineInvitation($groupId)
+    {
+        $user = auth()->user();
+        $user->groups()->detach($groupId);
 
-    return response()->json(['message' => 'Invitation declined.']);
-}
+        return response()->json(['message' => 'Invitation declined.']);
+    }
 
+    public function updateGroup(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $group = Group::find($id);
+
+        if (!$group) {
+            return response()->json(['error' => 'Group not found'], 404);
+        }
+
+        $group->name = $request->name;
+        $group->save();
+
+        return response()->json(['status' => 'Group name updated successfully', 'group' => $group]);
+    }
+
+    public function deleteGroup($id)
+    {
+        $group = Group::find($id);
+
+        if (!$group) {
+            return response()->json(['error' => 'Group not found'], 404);
+        }
+
+        $group->delete();
+
+        return response()->json(['status' => 'Group deleted successfully']);
+    }
+
+    // 新しく追加したメンバー取得メソッド
+    public function getMembers($groupId)
+    {
+        $group = Group::find($groupId);
+
+        if (!$group) {
+            return response()->json(['error' => 'Group not found'], 404);
+        }
+
+        $members = $group->users()->get();
+
+        return response()->json($members);
+    }
 }

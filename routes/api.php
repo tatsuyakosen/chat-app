@@ -4,17 +4,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GroupController;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider and all of them will
-| be assigned to the "api" middleware group. Make something great!
-|
-*/
-
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
@@ -23,8 +12,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/groups', [GroupController::class, 'getGroups']);
     Route::get('/groups/{group}/messages', [GroupController::class, 'getGroupMessages']);
     Route::post('/send-group-message', [GroupController::class, 'sendGroupMessage']);
-    Route::post('/groups', [GroupController::class, 'createGroup']); // 追加済みの `POST` ルート
-    Route::get('/users', [GroupController::class, 'getUsers']); // ユーザー一覧取得のルート
+    Route::post('/groups', [GroupController::class, 'createGroup']);
+    Route::put('/groups/{group}', [GroupController::class, 'updateGroup']); // グループ名更新用のPUTルート
+    Route::delete('/groups/{group}', [GroupController::class, 'deleteGroup']); // グループ削除用のDELETEルート
+    Route::get('/groups/{group}/members', [GroupController::class, 'getMembers']); // グループのメンバー取得
 });
 
 Route::post('/groups/{group}/invite', [GroupController::class, 'inviteUser']);
