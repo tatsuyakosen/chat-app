@@ -1,18 +1,18 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import UserIcon from "../components/UserIcon"; // UserIconコンポーネントをインポート
+import React, { useState, useEffect } from "react";
+import axios from "axios";
+import UserIcon from "../components/UserIcon";
+import HamburgerMenu from "../components/HamburgerMenu";
 
 function GroupChat() {
     const [groups, setGroups] = useState([]);
     const [selectedGroup, setSelectedGroup] = useState(null);
     const [messages, setMessages] = useState([]);
-    const [input, setInput] = useState('');
-    const [inviteEmail, setInviteEmail] = useState('');
-    const [showMembers, setShowMembers] = useState(false); // メンバー表示トグルの状態
-    const [members, setMembers] = useState([]); // 現在のグループのメンバーリスト
+    const [input, setInput] = useState("");
+    const [inviteEmail, setInviteEmail] = useState("");
+    const [members, setMembers] = useState([]);
 
     const fetchGroups = () => {
-        axios.get('/api/user-groups')
+        axios.get("/api/user-groups")
             .then((response) => {
                 setGroups(response.data);
             })
@@ -20,28 +20,6 @@ function GroupChat() {
                 console.error("グループの取得エラー:", error);
             });
     };
-
-    useEffect(() => {
-        fetchGroups();
-    }, []);
-
-    useEffect(() => {
-        if (selectedGroup) {
-            const channel = window.Echo.channel(`group.${selectedGroup.id}`);
-            channel.listen('NewMessage', (e) => {
-                const newMessage = e.message.trim();
-                if (newMessage) {
-                    setMessages((prevMessages) => [...prevMessages, { message: newMessage }]);
-                }
-            });
-
-            fetchMembers(selectedGroup.id); // グループ選択時にメンバーを取得
-
-            return () => {
-                window.Echo.leave(`group.${selectedGroup.id}`);
-            };
-        }
-    }, [selectedGroup]);
 
     const fetchMembers = (groupId) => {
         axios.get(`/api/groups/${groupId}/members`)
@@ -53,9 +31,26 @@ function GroupChat() {
             });
     };
 
-    const toggleMembers = () => {
-        setShowMembers(!showMembers); // メンバー表示をトグル
-    };
+    useEffect(() => {
+        fetchGroups();
+    }, []);
+
+    useEffect(() => {
+        if (selectedGroup) {
+            fetchMembers(selectedGroup.id);
+            const channel = window.Echo.channel(`group.${selectedGroup.id}`);
+            channel.listen("NewMessage", (e) => {
+                const newMessage = e.message.trim();
+                if (newMessage) {
+                    setMessages((prevMessages) => [...prevMessages, { message: newMessage }]);
+                }
+            });
+
+            return () => {
+                window.Echo.leave(`group.${selectedGroup.id}`);
+            };
+        }
+    }, [selectedGroup]);
 
     const selectGroup = (group) => {
         setSelectedGroup(group);
@@ -66,41 +61,38 @@ function GroupChat() {
 
     const sendMessage = () => {
         const trimmedInput = input.trim();
-        if (trimmedInput === '' || !selectedGroup) return;
+        if (trimmedInput === "" || !selectedGroup) return;
 
-        axios.post('/api/send-group-message', {
+        axios.post("/api/send-group-message", {
             message: trimmedInput,
             group_id: selectedGroup.id
         }).catch((error) => {
-            console.error('メッセージ送信エラー:', error);
+            console.error("メッセージ送信エラー:", error);
         });
-        setInput('');
+        setInput("");
     };
 
     const inviteUser = () => {
-        if (inviteEmail.trim() === '' || !selectedGroup) return;
+        if (inviteEmail.trim() === "" || !selectedGroup) return;
 
         axios.post(`/api/groups/${selectedGroup.id}/invite`, {
             email: inviteEmail
         }).then(() => {
             alert(`ユーザー ${inviteEmail} が招待されました`);
-            setInviteEmail('');
+            setInviteEmail("");
         }).catch((error) => {
-            console.error('ユーザー招待エラー:', error);
+            console.error("ユーザー招待エラー:", error);
         });
     };
 
     return (
         <div className="w-full h-screen flex flex-col bg-gray-900">
-            <div className="bg-gray-700 text-gray-200 py-4 w-full flex items-center justify-center relative">
-                <h2 className="text-2xl font-bold">motive room</h2>
-                {selectedGroup && (
-                    <div className="absolute right-4 flex items-center space-x-2">
-                        
-                        <UserIcon onClick={toggleMembers} /> {/* メンバー表示トグルアイコン */}
-                    </div>
-                )}
+            {/* 右上の人ロゴ */}
+            <div className="bg-gray-700 text-gray-200 py-4 w-full flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-center flex-grow">motive room</h2>
+                
             </div>
+
             <div className="flex flex-grow">
                 <div className="w-1/6 bg-gray-100 p-4 h-full overflow-y-auto">
                     <h3 className="text-lg font-semibold mb-4">グループ</h3>
@@ -109,7 +101,7 @@ function GroupChat() {
                             <li 
                                 key={group.id} 
                                 onClick={() => selectGroup(group)}
-                                className={`cursor-pointer p-2 rounded hover:bg-blue-100 transition ${selectedGroup?.id === group.id ? 'bg-blue-200' : ''}`}
+                                className={`cursor-pointer p-2 rounded hover:bg-blue-100 transition ${selectedGroup?.id === group.id ? "bg-blue-200" : ""}`}
                             >
                                 {group.name}
                             </li>
@@ -121,15 +113,11 @@ function GroupChat() {
                         <div className="bg-white p-6 rounded-lg shadow-md flex flex-col flex-grow">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-xl font-semibold">{selectedGroup.name}</h3>
-                                {showMembers && (
-                                    <div className="flex space-x-2">
-                                        {members.map((member, index) => (
-                                            <span key={index} className="text-gray-700 bg-gray-200 px-2 py-1 rounded-full">
-                                                {member.name}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
+                                {/* グループ名の右にハンバーガーメニューと人ロゴを表示 */}
+                                <div className="flex items-center space-x-2">
+                                    <UserIcon members={members} />
+                                    <HamburgerMenu onInvite={() => setInviteEmail(prompt("招待するユーザーのメールアドレスを入力してください"))} />
+                                </div>
                             </div>
                             <div className="flex-grow overflow-y-auto bg-gray-50 p-4 rounded-lg mb-4 shadow-inner">
                                 <ul className="space-y-1">
