@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import UserIcon from "../components/UserIcon";
 import HamburgerMenu from "../components/HamburgerMenu";
+import GroupOptionsMenu from "../components/GroupOptionsMenu";
 
 function GroupChat() {
     const [groups, setGroups] = useState([]);
@@ -10,6 +11,7 @@ function GroupChat() {
     const [input, setInput] = useState("");
     const [inviteEmail, setInviteEmail] = useState("");
     const [members, setMembers] = useState([]);
+    const [showMessageOptions, setShowMessageOptions] = useState(null);
 
     const fetchGroups = () => {
         axios.get("/api/user-groups")
@@ -85,12 +87,25 @@ function GroupChat() {
         });
     };
 
+    const toggleMessageOptions = (index) => {
+        setShowMessageOptions(showMessageOptions === index ? null : index);
+    };
+
+    const deleteMessage = (messageId) => {
+        axios.delete(`/api/messages/${messageId}`)
+            .then(() => {
+                setMessages(messages.filter((msg) => msg.id !== messageId));
+                setShowMessageOptions(null);
+            })
+            .catch((error) => {
+                console.error("メッセージ削除エラー:", error);
+            });
+    };
+
     return (
         <div className="w-full h-screen flex flex-col bg-gray-900">
-            {/* 右上の人ロゴ */}
             <div className="bg-gray-700 text-gray-200 py-4 w-full flex justify-between items-center">
                 <h2 className="text-2xl font-bold text-center flex-grow">motive room</h2>
-                
             </div>
 
             <div className="flex flex-grow">
@@ -98,12 +113,14 @@ function GroupChat() {
                     <h3 className="text-lg font-semibold mb-4">グループ</h3>
                     <ul className="space-y-2">
                         {groups.map((group) => (
-                            <li 
-                                key={group.id} 
-                                onClick={() => selectGroup(group)}
-                                className={`cursor-pointer p-2 rounded hover:bg-blue-100 transition ${selectedGroup?.id === group.id ? "bg-blue-200" : ""}`}
-                            >
-                                {group.name}
+                            <li key={group.id} className={`cursor-pointer p-2 rounded hover:bg-blue-100 transition ${selectedGroup?.id === group.id ? "bg-blue-200" : ""}`}>
+                                <div className="flex justify-between items-center">
+                                    <span onClick={() => selectGroup(group)}>{group.name}</span>
+                                    <GroupOptionsMenu
+                                        onRename={() => renameGroup(group)}
+                                        onDelete={() => deleteGroup(group)}
+                                    />
+                                </div>
                             </li>
                         ))}
                     </ul>
@@ -113,44 +130,59 @@ function GroupChat() {
                         <div className="bg-white p-6 rounded-lg shadow-md flex flex-col flex-grow">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-xl font-semibold">{selectedGroup.name}</h3>
-                                {/* グループ名の右にハンバーガーメニューと人ロゴを表示 */}
                                 <div className="flex items-center space-x-2">
                                     <UserIcon members={members} />
                                     <HamburgerMenu onInvite={() => setInviteEmail(prompt("招待するユーザーのメールアドレスを入力してください"))} />
                                 </div>
                             </div>
-                            <div className="flex-grow overflow-y-auto bg-gray-50 p-4 rounded-lg mb-4 shadow-inner">
+                            <div className="flex-grow overflow-y-auto bg-gray-50 p-4 rounded-lg mb-4 shadow-inner relative">
                                 <ul className="space-y-1">
                                     {messages.map((msg, index) => (
-                                        <li key={index} className="p-2 bg-blue-50 rounded-lg border border-gray-200">
-                                            {msg.message}
+                                        <li key={index} className="p-2 bg-blue-50 rounded-lg border border-gray-200 relative group">
+                                            <span>{msg.message}</span>
+                                            <button
+                                                onClick={() => toggleMessageOptions(index)}
+                                                className="absolute top-0 right-0 p-1 opacity-0 group-hover:opacity-100"
+                                            >
+                                                ・・・
+                                            </button>
+                                            {showMessageOptions === index && (
+                                                <div className="absolute right-0 mt-2 w-32 bg-white shadow-lg rounded-lg p-2 z-20">
+                                                    <button
+                                                        onClick={() => deleteMessage(msg.id)}
+                                                        className="text-red-500 hover:text-red-700"
+                                                    >
+                                                        削除する
+                                                    </button>
+                                                </div>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
                             </div>
                             <div className="flex space-x-2 mb-4">
-                                <input 
+                                <input
                                     value={inviteEmail}
                                     onChange={(e) => setInviteEmail(e.target.value)}
                                     placeholder="ユーザーのメールを入力"
                                     className="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-400"
                                 />
-                                <button 
-                                    onClick={inviteUser} 
+                                <button
+                                    onClick={inviteUser}
                                     className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
                                 >
                                     招待
                                 </button>
                             </div>
                             <div className="flex space-x-2">
-                                <input 
+                                <input
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
                                     placeholder="メッセージを入力"
                                     className="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-400"
                                 />
-                                <button 
-                                    onClick={sendMessage} 
+                                <button
+                                    onClick={sendMessage}
                                     className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
                                 >
                                     送信

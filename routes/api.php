@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GroupController;
+use App\Http\Controllers\MessageController;
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
@@ -22,3 +23,4 @@ Route::post('/groups/{group}/invite', [GroupController::class, 'inviteUser']);
 Route::get('/invitations', [GroupController::class, 'getInvitations']);
 Route::post('/groups/{group}/accept', [GroupController::class, 'acceptInvitation']);
 Route::post('/groups/{group}/decline', [GroupController::class, 'declineInvitation']);
+Route::delete('/messages/{message}', [MessageController::class, 'deleteMessage']);
