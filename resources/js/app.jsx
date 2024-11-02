@@ -7,7 +7,8 @@ import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Chat from './components/Chat';
-import GroupChat from './Pages/GroupChat'; 
+import GroupChat from './Pages/GroupChat';
+import Dashboard from './Pages/Dashboard'; // Dashboardのインポート
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -22,7 +23,8 @@ createInertiaApp({
             <Router>
                 <Routes>
                     <Route path="/chat" element={<Chat />} />
-                    <Route path="/group-chat" element={<GroupChat />} /> 
+                    <Route path="/group-chat" element={<GroupChat />} />
+                    <Route path="/dashboard" element={<Dashboard />} /> {/* Dashboardルートの追加 */}
                     <Route path="*" element={<App {...props} />} />
                 </Routes>
             </Router>

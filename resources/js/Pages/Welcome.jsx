@@ -17,7 +17,7 @@ export default function Welcome({ auth }) {
                 {auth.user ? (
                     <Link
                         href={route('dashboard')}
-                        className="text-lg font-semibold text-gray-300 hover:text-gray-100 focus:outline focus:outline-2 focus:rounded-sm focus:outline-red-500"
+                        className="px-6 py-3 bg-blue-500 text-white font-semibold text-lg rounded-lg hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
                     >
                         Dashboard
                     </Link>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import UserIcon from "../components/UserIcon";
 import HamburgerMenu from "../components/HamburgerMenu";
 import GroupOptionsMenu from "../components/GroupOptionsMenu";
+import { FaHome } from "react-icons/fa";
 
 function GroupChat() {
     const [groups, setGroups] = useState([]);
@@ -12,6 +14,8 @@ function GroupChat() {
     const [inviteEmail, setInviteEmail] = useState("");
     const [members, setMembers] = useState([]);
     const [showMessageOptions, setShowMessageOptions] = useState(null);
+
+    const navigate = useNavigate();
 
     const fetchGroups = () => {
         axios.get("/api/user-groups")
@@ -102,9 +106,44 @@ function GroupChat() {
             });
     };
 
+    const renameGroup = (group) => {
+        const newName = prompt("新しいグループ名を入力してください:", group.name);
+        if (newName) {
+            axios.put(`/api/groups/${group.id}`, { name: newName })
+                .then(() => {
+                    fetchGroups();
+                    if (selectedGroup?.id === group.id) {
+                        setSelectedGroup({ ...selectedGroup, name: newName });
+                    }
+                })
+                .catch((error) => {
+                    console.error("グループ名変更エラー:", error);
+                });
+        }
+    };
+
+    const deleteGroup = (group) => {
+        if (window.confirm("本当にこのグループを削除しますか？")) {
+            axios.delete(`/api/groups/${group.id}`)
+                .then(() => {
+                    fetchGroups();
+                    if (selectedGroup?.id === group.id) {
+                        setSelectedGroup(null);
+                    }
+                })
+                .catch((error) => {
+                    console.error("グループ削除エラー:", error);
+                });
+        }
+    };
+
     return (
         <div className="w-full h-screen flex flex-col bg-gray-900">
             <div className="bg-gray-700 text-gray-200 py-4 w-full flex justify-between items-center">
+                <FaHome
+                    onClick={() => navigate("/")} // Welcomeへ遷移
+                    className="text-white text-2xl cursor-pointer ml-4"
+                />
                 <h2 className="text-2xl font-bold text-center flex-grow">motive room</h2>
             </div>
 
