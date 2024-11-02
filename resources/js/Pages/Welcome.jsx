@@ -1,6 +1,22 @@
 import { Link, Head } from '@inertiajs/react';
+import React, { useState } from 'react';
+import axios from 'axios';
 
 export default function Welcome({ auth }) {
+    const [form, setForm] = useState({ name: '', email: '', message: '' });
+    const [submitted, setSubmitted] = useState(false);
+
+    const handleChange = (e) => {
+        setForm({ ...form, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        axios.post('/api/contact', form)
+            .then(() => setSubmitted(true))
+            .catch((error) => console.error("Error sending contact form:", error));
+    };
+
     return (
         <>
             <Head title="Welcome" />
@@ -37,13 +53,62 @@ export default function Welcome({ auth }) {
                         </Link>
                     </div>
                 )}
+
+                {/* お問い合わせフォーム */}
+                <div className="mt-16 w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+                    <h2 className="text-2xl font-semibold text-gray-900 mb-4">お問い合わせ</h2>
+                    {submitted ? (
+                        <p className="text-green-500">送信されました。ありがとうございます！</p>
+                    ) : (
+                        <form onSubmit={handleSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-gray-700">名前</label>
+                                <input
+                                    type="text"
+                                    name="name"
+                                    value={form.name}
+                                    onChange={handleChange}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700">メールアドレス</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={form.email}
+                                    onChange={handleChange}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                />
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-gray-700">メッセージ</label>
+                                <textarea
+                                    name="message"
+                                    value={form.message}
+                                    onChange={handleChange}
+                                    className="w-full p-2 border rounded"
+                                    required
+                                ></textarea>
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                            >
+                                送信
+                            </button>
+                        </form>
+                    )}
+                </div>
             </div>
             
             {/* グレーのグラデーション背景を直接設定 */}
             <style>{`
                 body {
                     background: linear-gradient(to bottom right, #2b2b2b, #1a1a1a);
-                    color: #ddd; /* 全体の文字色を少し明るく */
+                    color: #ddd;
                 }
             `}</style>
         </>
