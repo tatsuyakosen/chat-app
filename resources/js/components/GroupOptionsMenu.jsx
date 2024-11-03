@@ -1,11 +1,7 @@
 // components/GroupOptionsMenu.jsx
-import React, { useState } from "react";
+import React from "react";
 
-function GroupOptionsMenu({ onRename, onDelete }) {
-    const [isOpen, setIsOpen] = useState(false);
-
-    const toggleMenu = () => setIsOpen(!isOpen);
-
+function GroupOptionsMenu({ onRename, onDelete, isOpen, toggleMenu }) {
     return (
         <div className="relative">
             <button onClick={toggleMenu} className="text-gray-600 hover:text-gray-800">
@@ -16,7 +12,7 @@ function GroupOptionsMenu({ onRename, onDelete }) {
                     <button
                         onClick={() => {
                             onRename();
-                            setIsOpen(false);
+                            toggleMenu(); // 閉じる
                         }}
                         className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
                     >
@@ -25,7 +21,7 @@ function GroupOptionsMenu({ onRename, onDelete }) {
                     <button
                         onClick={() => {
                             onDelete();
-                            setIsOpen(false);
+                            toggleMenu(); // 閉じる
                         }}
                         className="block w-full px-4 py-2 text-left text-sm hover:bg-gray-100"
                     >

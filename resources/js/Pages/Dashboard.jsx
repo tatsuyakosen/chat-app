@@ -10,14 +10,31 @@ export default function Dashboard({ auth }) {
     const [groupName, setGroupName] = useState('');
     const [invitations, setInvitations] = useState([]);
     const [groups, setGroups] = useState([]);
+    const [loading, setLoading] = useState(true); // Loading state
 
     useEffect(() => {
-        axios.get('/api/invitations').then((response) => {
-            console.log("Invitations:", response.data);
-            setInvitations(response.data);
-        });
-        fetchGroups();
-    }, []);
+        console.log("auth object:", auth);
+        
+        if (auth && auth.user) { // authとauth.userが存在する場合にのみデータを取得
+            fetchInvitations();
+            fetchGroups();
+            setLoading(false); // データ取得が完了したらロードを解除
+        } else {
+            // authがない場合、ログインページにリダイレクトする
+            navigate("/login");
+        }
+    }, [auth]);
+
+    const fetchInvitations = () => {
+        axios.get('/api/invitations')
+            .then((response) => {
+                console.log("Invitations:", response.data);
+                setInvitations(response.data);
+            })
+            .catch(error => {
+                console.error("招待の取得エラー:", error);
+            });
+    };
 
     const fetchGroups = () => {
         axios.get('/api/user-groups')
@@ -57,23 +74,31 @@ export default function Dashboard({ auth }) {
     };
 
     const acceptInvitation = (groupId) => {
-        axios.post(`/api/groups/${groupId}/accept`).then(() => {
-            setInvitations(invitations.filter(inv => inv.id !== groupId));
-            alert('グループに参加しました');
-            fetchGroups();
-        }).catch(error => {
-            console.error('参加エラー:', error);
-        });
+        axios.post(`/api/groups/${groupId}/accept`)
+            .then(() => {
+                setInvitations(invitations.filter(inv => inv.id !== groupId));
+                alert('グループに参加しました');
+                fetchGroups();
+            })
+            .catch(error => {
+                console.error('参加エラー:', error);
+            });
     };
 
     const declineInvitation = (groupId) => {
-        axios.post(`/api/groups/${groupId}/decline`).then(() => {
-            setInvitations(invitations.filter(inv => inv.id !== groupId));
-            alert('招待を辞退しました');
-        }).catch(error => {
-            console.error('辞退エラー:', error);
-        });
+        axios.post(`/api/groups/${groupId}/decline`)
+            .then(() => {
+                setInvitations(invitations.filter(inv => inv.id !== groupId));
+                alert('招待を辞退しました');
+            })
+            .catch(error => {
+                console.error('辞退エラー:', error);
+            });
     };
+
+    if (loading) {
+        return <p>Loading...</p>; // loadingがtrueの場合にロード中表示
+    }
 
     return (
         <AuthenticatedLayout

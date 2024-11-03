@@ -66,26 +66,14 @@ export default function Login({ status, canResetPassword }) {
 
                     <div className="block mt-6">
                         <label className="flex items-center">
-                            <Checkbox
-                                name="remember"
-                                checked={data.remember}
-                                onChange={(e) => setData('remember', e.target.checked)}
-                            />
-                            <span className="ml-2 text-xl text-gray-600">Remember me</span>
+                            
                         </label>
                     </div>
 
                     <div className="flex items-center justify-end mt-8">
-                        {canResetPassword && (
-                            <Link
-                                href={route('password.request')}
-                                className="underline text-xl text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                            >
-                                Forgot your password?
-                            </Link>
-                        )}
+                       
                         <PrimaryButton className="ml-4 text-xl px-10 py-4" disabled={processing}>
-                            Log in
+                            ログイン
                         </PrimaryButton>
                     </div>
                 </form>

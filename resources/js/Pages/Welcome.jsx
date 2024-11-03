@@ -35,7 +35,7 @@ export default function Welcome({ auth }) {
                         href={route('dashboard')}
                         className="px-6 py-3 bg-blue-500 text-white font-semibold text-lg rounded-lg hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
                     >
-                        Dashboard
+                        ダッシュボード
                     </Link>
                 ) : (
                     <div className="flex space-x-4">
@@ -43,13 +43,13 @@ export default function Welcome({ auth }) {
                             href={route('login')}
                             className="px-6 py-3 text-lg bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition focus:outline focus:outline-2 focus:rounded-sm focus:outline-blue-500"
                         >
-                            Log in
+                            ログイン
                         </Link>
                         <Link
                             href={route('register')}
                             className="px-6 py-3 text-lg bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition focus:outline focus:outline-2 focus:rounded-sm focus:outline-green-500"
                         >
-                            Register
+                            新規登録
                         </Link>
                     </div>
                 )}

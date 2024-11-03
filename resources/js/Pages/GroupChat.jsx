@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import UserIcon from "../components/UserIcon";
-import HamburgerMenu from "../components/HamburgerMenu";
 import GroupOptionsMenu from "../components/GroupOptionsMenu";
 import { FaHome } from "react-icons/fa";
 
@@ -14,8 +13,10 @@ function GroupChat() {
     const [inviteEmail, setInviteEmail] = useState("");
     const [members, setMembers] = useState([]);
     const [showMessageOptions, setShowMessageOptions] = useState(null);
+    const [openMenuId, setOpenMenuId] = useState(null); // 開いているメニューのIDを管理
 
     const navigate = useNavigate();
+    const menuRef = useRef(null);
 
     const fetchGroups = () => {
         axios.get("/api/user-groups")
@@ -58,6 +59,19 @@ function GroupChat() {
         }
     }, [selectedGroup]);
 
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (menuRef.current && !menuRef.current.contains(event.target)) {
+                setOpenMenuId(null); // メニュー外をクリックした場合、メニューを閉じる
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, []);
+
     const selectGroup = (group) => {
         setSelectedGroup(group);
         axios.get(`/api/groups/${group.id}/messages`).then((response) => {
@@ -79,16 +93,17 @@ function GroupChat() {
     };
 
     const inviteUser = () => {
-        if (inviteEmail.trim() === "" || !selectedGroup) return;
-
-        axios.post(`/api/groups/${selectedGroup.id}/invite`, {
-            email: inviteEmail
-        }).then(() => {
-            alert(`ユーザー ${inviteEmail} が招待されました`);
-            setInviteEmail("");
-        }).catch((error) => {
-            console.error("ユーザー招待エラー:", error);
-        });
+        const email = prompt("招待するユーザーのメールアドレスを入力してください");
+        if (email && email.trim() !== "" && selectedGroup) {
+            axios.post(`/api/groups/${selectedGroup.id}/invite`, { email })
+                .then(() => {
+                    alert(`ユーザー ${email} が招待されました`);
+                    fetchMembers(selectedGroup.id); // 招待後にメンバー情報を再取得
+                })
+                .catch((error) => {
+                    console.error("ユーザー招待エラー:", error);
+                });
+        }
     };
 
     const toggleMessageOptions = (index) => {
@@ -138,16 +153,16 @@ function GroupChat() {
     };
 
     return (
-        <div className="w-full h-screen flex flex-col bg-gray-900">
+        <div className="w-full h-screen flex flex-col bg-gray-900 overflow-hidden">
             <div className="bg-gray-700 text-gray-200 py-4 w-full flex justify-between items-center">
                 <FaHome
-                    onClick={() => navigate("/")} // Welcomeへ遷移
+                    onClick={() => navigate("/")}
                     className="text-white text-2xl cursor-pointer ml-4"
                 />
                 <h2 className="text-2xl font-bold text-center flex-grow">motive room</h2>
             </div>
 
-            <div className="flex flex-grow">
+            <div className="flex flex-grow overflow-hidden">
                 <div className="w-1/6 bg-gray-100 p-4 h-full overflow-y-auto">
                     <h3 className="text-lg font-semibold mb-4">グループ</h3>
                     <ul className="space-y-2">
@@ -158,6 +173,8 @@ function GroupChat() {
                                     <GroupOptionsMenu
                                         onRename={() => renameGroup(group)}
                                         onDelete={() => deleteGroup(group)}
+                                        isOpen={openMenuId === group.id}
+                                        toggleMenu={() => setOpenMenuId(openMenuId === group.id ? null : group.id)}
                                     />
                                 </div>
                             </li>
@@ -166,15 +183,17 @@ function GroupChat() {
                 </div>
                 <div className="w-5/6 p-4 h-full flex flex-col">
                     {selectedGroup ? (
-                        <div className="bg-white p-6 rounded-lg shadow-md flex flex-col flex-grow">
+                        <div className="bg-white p-6 rounded-lg shadow-md flex flex-col flex-grow overflow-hidden">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-xl font-semibold">{selectedGroup.name}</h3>
                                 <div className="flex items-center space-x-2">
                                     <UserIcon members={members} />
-                                    <HamburgerMenu onInvite={() => setInviteEmail(prompt("招待するユーザーのメールアドレスを入力してください"))} />
+                                    <button onClick={inviteUser} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
+                                        招待
+                                    </button>
                                 </div>
                             </div>
-                            <div className="flex-grow overflow-y-auto bg-gray-50 p-4 rounded-lg mb-4 shadow-inner relative">
+                            <div className="flex-grow overflow-y-auto bg-gray-50 p-4 rounded-lg mb-4 shadow-inner relative" style={{ maxHeight: '80vh' }}>
                                 <ul className="space-y-1">
                                     {messages.map((msg, index) => (
                                         <li key={index} className="p-2 bg-blue-50 rounded-lg border border-gray-200 relative group">
@@ -199,24 +218,15 @@ function GroupChat() {
                                     ))}
                                 </ul>
                             </div>
-                            <div className="flex space-x-2 mb-4">
-                                <input
-                                    value={inviteEmail}
-                                    onChange={(e) => setInviteEmail(e.target.value)}
-                                    placeholder="ユーザーのメールを入力"
-                                    className="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-400"
-                                />
-                                <button
-                                    onClick={inviteUser}
-                                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
-                                >
-                                    招待
-                                </button>
-                            </div>
                             <div className="flex space-x-2">
                                 <input
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            sendMessage(); // Enterキーが押されたときに送信
+                                        }
+                                    }}
                                     placeholder="メッセージを入力"
                                     className="flex-grow p-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-400"
                                 />
