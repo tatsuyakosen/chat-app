@@ -41,13 +41,13 @@ export default function Welcome({ auth }) {
                     <div className="flex space-x-4">
                         <Link
                             href={route('login')}
-                            className="px-6 py-3 text-lg bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition focus:outline focus:outline-2 focus:rounded-sm focus:outline-blue-500"
+                            className="px-6 py-3 text-lg bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-400"
                         >
                             ログイン
                         </Link>
                         <Link
                             href={route('register')}
-                            className="px-6 py-3 text-lg bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition focus:outline focus:outline-2 focus:rounded-sm focus:outline-green-500"
+                            className="px-6 py-3 text-lg bg-green-500 text-white font-semibold rounded-lg hover:bg-green-600 transition focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-400"
                         >
                             新規登録
                         </Link>
@@ -68,7 +68,7 @@ export default function Welcome({ auth }) {
                                     name="name"
                                     value={form.name}
                                     onChange={handleChange}
-                                    className="w-full p-2 border rounded"
+                                    className="w-full p-2 border rounded text-black"
                                     required
                                 />
                             </div>
@@ -79,7 +79,7 @@ export default function Welcome({ auth }) {
                                     name="email"
                                     value={form.email}
                                     onChange={handleChange}
-                                    className="w-full p-2 border rounded"
+                                    className="w-full p-2 border rounded text-black"
                                     required
                                 />
                             </div>
@@ -89,7 +89,7 @@ export default function Welcome({ auth }) {
                                     name="message"
                                     value={form.message}
                                     onChange={handleChange}
-                                    className="w-full p-2 border rounded"
+                                    className="w-full p-2 border rounded text-black"
                                     required
                                 ></textarea>
                             </div>

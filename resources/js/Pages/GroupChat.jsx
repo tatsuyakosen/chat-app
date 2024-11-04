@@ -13,12 +13,13 @@ function GroupChat() {
     const [inviteEmail, setInviteEmail] = useState("");
     const [members, setMembers] = useState([]);
     const [showMessageOptions, setShowMessageOptions] = useState(null);
-    const [openMenuId, setOpenMenuId] = useState(null); // 開いているメニューのIDを管理
+    const [openMenuId, setOpenMenuId] = useState(null); 
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
     const navigate = useNavigate();
     const menuRef = useRef(null);
     const userMenuRef = useRef(null);
+    const messageOptionsRef = useRef(null);
 
     const fetchGroups = () => {
         axios.get("/api/user-groups")
@@ -64,10 +65,13 @@ function GroupChat() {
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setOpenMenuId(null); // グループメニューを閉じる
+                setOpenMenuId(null);
             }
             if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
-                setIsUserMenuOpen(false); // ユーザーアイコンのメニューを閉じる
+                setIsUserMenuOpen(false);
+            }
+            if (messageOptionsRef.current && !messageOptionsRef.current.contains(event.target)) {
+                setShowMessageOptions(null); // メッセージオプションメニューを閉じる
             }
         };
 
@@ -103,7 +107,7 @@ function GroupChat() {
             axios.post(`/api/groups/${selectedGroup.id}/invite`, { email })
                 .then(() => {
                     alert(`ユーザー ${email} が招待されました`);
-                    fetchMembers(selectedGroup.id); // 招待後にメンバー情報を再取得
+                    fetchMembers(selectedGroup.id);
                 })
                 .catch((error) => {
                     console.error("ユーザー招待エラー:", error);
@@ -202,7 +206,7 @@ function GroupChat() {
                             <div className="flex-grow overflow-y-auto bg-gray-50 p-4 rounded-lg mb-4 shadow-inner relative" style={{ maxHeight: '80vh' }}>
                                 <ul className="space-y-1">
                                     {messages.map((msg, index) => (
-                                        <li key={index} className="p-2 bg-blue-50 rounded-lg border border-gray-200 relative group">
+                                        <li key={index} className="p-2 bg-blue-50 rounded-lg border border-gray-200 relative group" ref={messageOptionsRef}>
                                             <span>{msg.message}</span>
                                             <button
                                                 onClick={() => toggleMessageOptions(index)}
@@ -230,7 +234,7 @@ function GroupChat() {
                                     onChange={(e) => setInput(e.target.value)}
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
-                                            sendMessage(); // Enterキーが押されたときに送信
+                                            sendMessage();
                                         }
                                     }}
                                     placeholder="メッセージを入力"
