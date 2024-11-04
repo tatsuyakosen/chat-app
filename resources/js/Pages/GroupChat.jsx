@@ -14,9 +14,11 @@ function GroupChat() {
     const [members, setMembers] = useState([]);
     const [showMessageOptions, setShowMessageOptions] = useState(null);
     const [openMenuId, setOpenMenuId] = useState(null); // 開いているメニューのIDを管理
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
     const navigate = useNavigate();
     const menuRef = useRef(null);
+    const userMenuRef = useRef(null);
 
     const fetchGroups = () => {
         axios.get("/api/user-groups")
@@ -62,7 +64,10 @@ function GroupChat() {
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (menuRef.current && !menuRef.current.contains(event.target)) {
-                setOpenMenuId(null); // メニュー外をクリックした場合、メニューを閉じる
+                setOpenMenuId(null); // グループメニューを閉じる
+            }
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+                setIsUserMenuOpen(false); // ユーザーアイコンのメニューを閉じる
             }
         };
 
@@ -175,6 +180,7 @@ function GroupChat() {
                                         onDelete={() => deleteGroup(group)}
                                         isOpen={openMenuId === group.id}
                                         toggleMenu={() => setOpenMenuId(openMenuId === group.id ? null : group.id)}
+                                        ref={menuRef}
                                     />
                                 </div>
                             </li>
@@ -186,8 +192,8 @@ function GroupChat() {
                         <div className="bg-white p-6 rounded-lg shadow-md flex flex-col flex-grow overflow-hidden">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-xl font-semibold">{selectedGroup.name}</h3>
-                                <div className="flex items-center space-x-2">
-                                    <UserIcon members={members} />
+                                <div className="flex items-center space-x-2" ref={userMenuRef}>
+                                    <UserIcon members={members} isMenuOpen={isUserMenuOpen} toggleMenu={() => setIsUserMenuOpen(!isUserMenuOpen)} />
                                     <button onClick={inviteUser} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition">
                                         招待
                                     </button>

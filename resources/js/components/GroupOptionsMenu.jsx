@@ -1,9 +1,9 @@
 // components/GroupOptionsMenu.jsx
-import React from "react";
+import React, { forwardRef } from "react";
 
-function GroupOptionsMenu({ onRename, onDelete, isOpen, toggleMenu }) {
+const GroupOptionsMenu = forwardRef(({ onRename, onDelete, isOpen, toggleMenu }, ref) => {
     return (
-        <div className="relative">
+        <div className="relative" ref={ref}>
             <button onClick={toggleMenu} className="text-gray-600 hover:text-gray-800">
                 ...
             </button>
@@ -31,6 +31,6 @@ function GroupOptionsMenu({ onRename, onDelete, isOpen, toggleMenu }) {
             )}
         </div>
     );
-}
+});
 
 export default GroupOptionsMenu;

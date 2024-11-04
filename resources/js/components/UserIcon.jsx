@@ -1,12 +1,9 @@
-import React, { useState } from "react";
-import HamburgerMenu from "./HamburgerMenu";
+import React, { useState, useRef } from "react";
 
-const UserIcon = ({ members, onInvite }) => {
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-
+const UserIcon = ({ members, isMenuOpen, toggleMenu }) => {
     return (
         <div className="relative">
-            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-xl focus:outline-none">
+            <button onClick={toggleMenu} className="text-xl focus:outline-none">
                 👥
             </button>
             {isMenuOpen && (
